@@ -1,0 +1,11 @@
+Resources:
+  ApiFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: src/api.handler
+      Runtime: nodejs18.x
+      CodeUri: .
+      Environment:
+        Variables:
+          MY_ENV_VAR_1: "value1"
+          MY_ENV_VAR_2: "value2"

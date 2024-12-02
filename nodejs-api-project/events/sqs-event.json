@@ -1,0 +1,20 @@
+{
+  "Records": [
+    {
+      "messageId": "f92f8b89-3a60-442f-9b8e-d848c44a8408",
+      "receiptHandle": "AQEBxD4n5nNOXjVzrdVoX5P4h6tUvhgfhqvU2FZDJj5F3e2XryyMFuOHtE9j3XgdqYBqaSKhA==",
+      "body": "{\"orderId\":\"1234\",\"status\":\"processed\"}",
+      "attributes": {
+        "ApproximateReceiveCount": "1",
+        "SentTimestamp": "1622474234000",
+        "SenderId": "AIDAIEXAMPLE",
+        "ApproximateFirstReceiveTimestamp": "1622474234010"
+      },
+      "messageAttributes": {},
+      "md5OfBody": "acbde23456ef987abcdef123456",
+      "eventSource": "aws:sqs",
+      "eventSourceARN": "arn:aws:sqs:us-east-1:123456789012:MyQueue",
+      "awsRegion": "us-east-1"
+    }
+  ]
+}

@@ -1,0 +1,45 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Transform: AWS::Serverless-2016-10-31
+Resources:
+  # API Lambda
+  ApiFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: src/api.handler
+      Runtime: nodejs18.x
+      CodeUri: .
+      Events:
+        HelloWorld:
+          Type: Api
+          Properties:
+            Path: /helloworld
+            Method: GET
+        Health:
+          Type: Api
+          Properties:
+            Path: /health
+            Method: GET
+
+  # Event Lambda
+  EventFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: src/event.handler
+      Runtime: nodejs18.x
+      CodeUri: .
+
+  # EventBridge Rule
+  EventBridgeRule:
+    Type: AWS::Events::Rule
+    Properties:
+      ScheduleExpression: rate(2 minutes)
+      Targets:
+        - Arn: !GetAtt EventFunction.Arn
+          Id: EventLambdaTarget
+  EventFunctionPermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      FunctionName: !Ref EventFunction
+      Action: lambda:InvokeFunction
+      Principal: events.amazonaws.com
+      SourceArn: !GetAtt EventBridgeRule.Arn

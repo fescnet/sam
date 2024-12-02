@@ -1,0 +1,76 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Transform: AWS::Serverless-2016-10-31
+Resources:
+  # API Lambda
+  ApiFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: src/api.handler
+      Runtime: nodejs18.x
+      CodeUri: .
+      Events:
+        HelloWorld:
+          Type: Api
+          Properties:
+            Path: /helloworld
+            Method: GET
+        Health:
+          Type: Api
+          Properties:
+            Path: /health
+            Method: GET
+
+  # Event Lambda
+  EventFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: src/event.handler
+      Runtime: nodejs18.x
+      CodeUri: .
+      Events:
+        SQSQueueEvent:
+          Type: SQS
+          Properties:
+            Queue: !GetAtt MyQueue.Arn
+            BatchSize: 5 # Number of messages to process at once
+
+  # EventBridge Rule
+  EventBridgeRule:
+    Type: AWS::Events::Rule
+    Properties:
+      ScheduleExpression: rate(2 minutes)
+      Targets:
+        - Arn: !GetAtt EventFunction.Arn
+          Id: EventLambdaTarget
+
+  # Lambda Permissions for EventBridge
+  EventFunctionPermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      FunctionName: !Ref EventFunction
+      Action: lambda:InvokeFunction
+      Principal: events.amazonaws.com
+      SourceArn: !GetAtt EventBridgeRule.Arn
+
+  # SQS Queue
+  MyQueue:
+    Type: AWS::SQS::Queue
+    Properties:
+      QueueName: my-queue
+      VisibilityTimeout: 30 # Visibility timeout for messages in the queue
+
+  # Lambda Permissions to Read from SQS (API Lambda)
+  ApiLambdaSQSPermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      FunctionName: !Ref ApiFunction
+      Action: lambda:InvokeFunction
+      Principal: sqs.amazonaws.com
+
+  # Lambda Permissions to Read from SQS (Event Lambda)
+  EventLambdaSQSPermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      FunctionName: !Ref EventFunction
+      Action: lambda:InvokeFunction
+      Principal: sqs.amazonaws.com
