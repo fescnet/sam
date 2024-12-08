@@ -1,0 +1,58 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Transform: AWS::Serverless-2016-10-31
+Resources:
+  # API Lambda
+  ApiFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: dist/handler.handler
+      Runtime: nodejs18.x
+      CodeUri: .
+      Environment:
+        Variables:
+          LOG_BUCKET_NAME: !Ref LogBucket
+      Policies:
+        - S3CrudPolicy:
+            BucketName: !Ref LogBucket
+      Events:
+        HelloWorld:
+          Type: Api
+          Properties:
+            Path: /
+            Method: GET
+
+  # Log Lambda
+  LogFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: dist/handler.readLogs
+      Runtime: nodejs18.x
+      CodeUri: .
+      Environment:
+        Variables:
+          LOG_BUCKET_NAME: !Ref LogBucket
+      Policies:
+        - S3CrudPolicy:
+            BucketName: !Ref LogBucket
+      Events:
+        HelloWorld:
+          Type: Api
+          Properties:
+            Path: /logs
+            Method: GET
+
+  # S3 Bucket for Logs
+  LogBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !Sub "${AWS::StackName}-log-bucket" # Dynamically name the bucket based on stack name
+      AccessControl: Private
+
+Outputs:
+  WebEndpoint:
+    Description: "API Gateway endpoint URL for Prod stage"
+    Value: !Sub "https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/"
+
+  LogBucketName:
+    Description: "S3 bucket name for storing logs"
+    Value: !Ref LogBucket

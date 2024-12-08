@@ -133,3 +133,44 @@ aws cloudformation delete-stack --stack-name <your-stack-name>
 ```
 sam sync --stack-name {{stack-name}} --watch
 ```
+
+## 17. Invoke a Lambda Function Using the AWS CLI
+
+```
+aws lambda invoke \
+  --function-name <function-name> \
+  --payload file://event.json \
+  --cli-binary-format raw-in-base64-out \
+  response.json
+
+```
+
+Examples:
+
+### No event data
+
+```
+aws lambda invoke --function-name typescript-api-project-ApiFunction-ouacI3GK8OnM response.json
+```
+
+### with event data
+
+```
+aws lambda invoke --function-name typescript-api-project-ApiFunction-ouacI3GK8OnM --payload file://event-get-all-items.json --cli-binary-format raw-in-base64-out response.json
+```
+
+## 18. List lambda functions
+
+### List the names of all lambda functions
+
+```
+aws lambda list-functions --query "Functions[*].FunctionName" --output table
+```
+
+### List the names of the lambdas that start with typescript-api-project-Log
+
+```
+aws lambda list-functions \
+  --query "Functions[?starts_with(FunctionName, 'typescript-api-project-Log')].FunctionName" \
+  --output table
+```

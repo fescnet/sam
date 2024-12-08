@@ -1,0 +1,35 @@
+mkdir my-lambda-project
+cd my-lambda-project
+npm init -y
+npm install --save-dev typescript @types/node @types/aws-lambda
+npm install aws-sdk
+npx tsc --init
+
+# Modify the tsconfig.json file to suit Lambda requirements:
+
+{
+  "compilerOptions": {
+    "target": "ES2020",
+    "module": "commonjs",
+    "lib": ["ES2020"],
+    "strict": true,
+    "esModuleInterop": true,
+    "outDir": "dist"
+  },
+  "include": ["src/**/*"]
+}
+
+mkdir src
+
+# Create a file for your Lambda handler, e.g., handler.ts:
+
+import { APIGatewayProxyHandler } from "aws-lambda";
+
+export const handler: APIGatewayProxyHandler = async (event, context) => {
+  console.log("Event: ", event);
+
+  return {
+    statusCode: 200,
+    body: JSON.stringify({ message: "Hello from Lambda!" }),
+  };
+};
