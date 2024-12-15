@@ -1,0 +1,20 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Transform: AWS::Serverless-2016-10-31
+Resources:
+  # Producer Lambda
+  MainFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub "${ProjectName}-MainFunction"
+      Handler: dist/main.handler
+      Runtime: nodejs18.x
+      CodeUri: .
+      Description: "Lambda function that sends data to Datadog"
+      Layers:
+        - !Sub "arn:aws:lambda:${AWS::Region}:464622532012:layer:Datadog-Extension:43"
+
+Parameters:
+  ProjectName:
+    Type: String
+    Default: "typescript-datadog" # Default project name, can be overridden
+    Description: "The name of the project"

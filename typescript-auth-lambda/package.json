@@ -1,0 +1,23 @@
+{
+  "name": "typescript-auth-lambda",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "sync": "npx tsc && sam sync --stack-name \"typescript-auth-lambda\"",
+    "sam:deploy": "npx tsc && sam deploy --resolve-s3 --stack-name \"typescript-auth-lambda\" --capabilities CAPABILITY_IAM",
+    "dev": "concurrently \"npx tsc --watch\" \"sam sync --stack-name \"typescript-auth-lambda\" --watch\""
+  },
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "devDependencies": {
+    "@types/aws-lambda": "^8.10.146",
+    "@types/node": "^22.10.1",
+    "concurrently": "^9.1.0",
+    "typescript": "^5.7.2"
+  },
+  "dependencies": {
+    "aws-sdk": "^2.1692.0"
+  }
+}

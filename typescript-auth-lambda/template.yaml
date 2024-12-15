@@ -1,0 +1,77 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Transform: AWS::Serverless-2016-10-31
+
+Resources:
+  # Lambda Authorizer
+  DogApiAuthorizer:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: dist/authorizer.handler
+      Runtime: nodejs18.x
+      MemorySize: 128
+      Timeout: 5
+      Policies:
+        - Statement:
+            Effect: Allow
+            Action:
+              - "logs:CreateLogGroup"
+              - "logs:CreateLogStream"
+              - "logs:PutLogEvents"
+            Resource: "arn:aws:logs:*:*:*"
+
+  # Lambda Function for Listing Dog Names
+  ListDogsFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: dist/listDogs.handler
+      Runtime: nodejs18.x
+      MemorySize: 128
+      Timeout: 5
+      Policies:
+        - Statement:
+            Effect: Allow
+            Action:
+              - "logs:CreateLogGroup"
+              - "logs:CreateLogStream"
+              - "logs:PutLogEvents"
+            Resource: "arn:aws:logs:*:*:*"
+
+  # Permission for API Gateway to invoke the Lambda Authorizer
+  DogApiAuthorizerPermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      FunctionName: !GetAtt DogApiAuthorizer.Arn
+      Action: lambda:InvokeFunction
+      Principal: apigateway.amazonaws.com
+
+  # API Gateway with Lambda Authorizer
+  DogApi:
+    Type: AWS::Serverless::Api
+    Properties:
+      StageName: Prod
+      Auth:
+        DefaultAuthorizer: LambdaAuthorizer
+        Authorizers:
+          LambdaAuthorizer:
+            FunctionArn: !GetAtt DogApiAuthorizer.Arn
+            IdentitySource: "method.request.header.Authorization"
+            AuthorizerResultTtlInSeconds: 0 # Disable caching
+      EndpointConfiguration: REGIONAL
+      Cors:
+        AllowCredentials: false
+        AllowMethods: "'OPTIONS,GET,POST'"
+        AllowHeaders: "'Content-Type,Authorization'"
+        AllowOrigin: "'*'"
+      DefinitionBody:
+        swagger: "2.0"
+        info:
+          title: "Dog API"
+          version: "1.0"
+        paths:
+          /dogs:
+            get:
+              x-amazon-apigateway-integration:
+                uri: !Sub "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${ListDogsFunction.Arn}/invocations"
+                httpMethod: POST
+                type: aws_proxy
+              responses: {}
