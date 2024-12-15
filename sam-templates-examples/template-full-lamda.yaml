@@ -1,0 +1,60 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Transform: AWS::Serverless-2016-10-31
+Resources:
+  # API Lambda
+  MainFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: dist/handler.handler # Path to the handler
+      Runtime: nodejs18.x # Runtime version
+      CodeUri: . # Location of the code
+      Description: "Main API handler Lambda function" # Description of the Lambda
+      MemorySize: 128 # Memory in MB
+      Timeout: 10 # Timeout in seconds
+      Environment: # Environment variables
+        Variables:
+          NODE_ENV: production
+          LOG_LEVEL: info
+      Role: arn:aws:iam::123456789012:role/MyLambdaExecutionRole # IAM role ARN
+      Policies: # Managed or inline policies
+        - AWSLambdaBasicExecutionRole # Grants basic execution permissions
+        - S3ReadPolicy # Custom policy (if defined in the template)
+      Events: # Event sources
+        ApiGatewayEvent:
+          Type: Api # API Gateway as trigger
+          Properties:
+            Path: /endpoint
+            Method: get
+      VpcConfig: # VPC configuration
+        SecurityGroupIds:
+          - sg-0123456789abcdef0
+        SubnetIds:
+          - subnet-0123456789abcdef0
+          - subnet-abcdef0123456789
+      Layers: # Lambda layers
+        - arn:aws:lambda:region:account-id:layer:layer-name:version
+      FileSystemConfigs: # File system configuration
+        - Arn: arn:aws:elasticfilesystem:region:account-id:access-point/access-point-id
+          LocalMountPath: /mnt/efs
+      Tracing: Active # AWS X-Ray tracing
+      Tags: # Tags for the resource
+        Project: MyProject
+        Environment: Production
+# Explanation of Properties:
+
+#     Handler: Specifies the entry point of your Lambda function.
+#     Runtime: The programming language runtime (e.g., nodejs18.x).
+#     CodeUri: Path to the code location (can be local or an S3 URI).
+#     Description: Describes the purpose of the function.
+#     MemorySize: Allocates memory for the function (default is 128 MB, max is 10,240 MB).
+#     Timeout: The maximum runtime for the function in seconds (default is 3 seconds, max is 900 seconds).
+#     Environment: Specifies environment variables accessible in your function.
+#     Role: The IAM role that grants permissions to the Lambda function.
+#     Policies: Adds pre-defined or custom policies for the function.
+#     Events: Configures triggers, such as API Gateway, S3, or CloudWatch events.
+#     VpcConfig: Connects the function to a VPC, specifying security group and subnet IDs.
+#     Layers: References Lambda layers for shared dependencies.  Instead of embedding common dependencies directly in each function's deployment package, you can package them into a Layer and attach that Layer to your Lambda functions.
+#     FileSystemConfigs: Attaches an Amazon EFS file system to the Lambda function.
+#     Tracing: Enables X-Ray tracing (Active or PassThrough).
+#     Tags: Adds metadata tags to the function resource.
+

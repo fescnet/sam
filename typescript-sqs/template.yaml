@@ -1,0 +1,73 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Transform: AWS::Serverless-2016-10-31
+Resources:
+  # SQS Queue
+  MyQueue:
+    Type: AWS::SQS::Queue
+    Properties:
+      QueueName: !Sub "${ProjectName}-MyQueue"
+
+  # Producer Lambda
+  MainFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub "${ProjectName}-MainFunction"
+      Handler: dist/producer.handler
+      Runtime: nodejs18.x
+      CodeUri: .
+      Description: "Lambda function that sends messages to SQS queue"
+      Environment:
+        Variables:
+          QUEUE_URL: !Ref MyQueue
+      Policies:
+        - Statement:
+            Effect: Allow
+            Action:
+              - sqs:SendMessage
+            Resource: !GetAtt MyQueue.Arn
+
+  # Consumer Lambda
+  ConsumerFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub "${ProjectName}-ConsumerFunction"
+      Handler: dist/consumer.handler
+      Runtime: nodejs18.x
+      CodeUri: .
+      Description: "Lambda function that processes messages from SQS queue"
+      Events:
+        SQSQueue:
+          Type: SQS
+          Properties:
+            Queue: !GetAtt MyQueue.Arn
+            BatchSize: 5 # Number of messages to process in a single batch
+      Policies:
+        - Statement:
+            Effect: Allow
+            Action:
+              - sqs:ReceiveMessage
+              - sqs:DeleteMessage
+              - sqs:GetQueueAttributes
+            Resource: !GetAtt MyQueue.Arn
+
+Parameters:
+  ProjectName:
+    Type: String
+    Default: "typescript-sqs" # Default project name, can be overridden
+    Description: "The name of the project"
+# Explanation of the Template
+
+#     MyQueue (SQS Queue):
+#         An SQS queue named MyQueue is created to hold messages.
+#         It acts as the connection between the producer and consumer Lambda functions.
+
+#     MainFunction (Producer Lambda):
+#         This function sends messages to the SQS queue.
+#         Environment variable QUEUE_URL contains the queue's URL.
+#         The SQSSendMessagePolicy is added, granting permission to send messages to the queue.
+
+#     ConsumerFunction (Consumer Lambda):
+#         This function is triggered by the SQS queue when messages are available.
+#         The Events section configures the SQS queue as an event source for the Lambda function.
+#         The BatchSize property determines how many messages are processed in a single batch.
+#         The SQSReceiveMessagePolicy is added, granting permission to receive and delete messages from the queue.
