@@ -1,0 +1,31 @@
+{
+  "name": "typescript-lint",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "sync": "npx tsc && sam sync --stack-name \"typescript-lint\"",
+    "sam:deploy": "npx tsc && sam deploy --resolve-s3 --stack-name \"typescript-lint\" --capabilities CAPABILITY_IAM",
+    "dev": "concurrently \"npx tsc --watch\" \"sam sync --stack-name \"typescript-lint\" --watch\"",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix"
+  },
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "devDependencies": {
+    "@eslint/js": "^9.17.0",
+    "@types/aws-lambda": "^8.10.146",
+    "@types/node": "^22.10.1",
+    "@typescript-eslint/eslint-plugin": "^8.18.0",
+    "@typescript-eslint/parser": "^8.18.0",
+    "concurrently": "^9.1.0",
+    "eslint": "^9.17.0",
+    "globals": "^15.13.0",
+    "typescript": "^5.7.2",
+    "typescript-eslint": "^8.18.0"
+  },
+  "dependencies": {
+    "aws-sdk": "^2.1692.0"
+  }
+}
