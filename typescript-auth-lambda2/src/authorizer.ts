@@ -7,8 +7,12 @@
 
 export const handler = function (event: any, context: any, callback: any) {
   console.log("Received event:", JSON.stringify(event, null, 2));
-  callback(null, generateAllow("me", event.methodArn));
-  // callback("Unauthorized");
+
+  if (event.authorizationToken === "Bearer valid-token") {
+    callback(null, generateAllow("me", event.methodArn));
+  } else {
+    callback(null, generateDeny("me", event.methodArn));
+  }
 };
 
 // Help function to generate an IAM policy
