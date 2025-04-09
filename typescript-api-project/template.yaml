@@ -1,12 +1,17 @@
 AWSTemplateFormatVersion: "2010-09-09"
 Transform: AWS::Serverless-2016-10-31
+
+Globals:
+  Function:
+    Timeout: 10
+    Runtime: nodejs18.x
+
 Resources:
-  # API Lambda
-  ApiFunction:
+  # Lambda for streaming data (SSE) + cookie handling
+  SendStreamFunction:
     Type: AWS::Serverless::Function
     Properties:
       Handler: dist/handler.handler
-      Runtime: nodejs18.x
       CodeUri: .
       Environment:
         Variables:
@@ -15,18 +20,36 @@ Resources:
         - S3CrudPolicy:
             BucketName: !Ref LogBucket
       Events:
-        HelloWorld:
+        SendStreamApi:
           Type: Api
           Properties:
-            Path: /
+            Path: /sendStream
             Method: GET
+            RestApiId: !Ref MyApi
+        SendCookieApi:
+          Type: Api
+          Properties:
+            Path: /sendCookie
+            Method: GET
+            RestApiId: !Ref MyApi
+        htmlApi:
+          Type: Api
+          Properties:
+            Path: /html
+            Method: GET
+            RestApiId: !Ref MyApi
+        ReadCookieApi:
+          Type: Api
+          Properties:
+            Path: /readCookie
+            Method: GET
+            RestApiId: !Ref MyApi
 
-  # Log Lambda
-  LogFunction:
+  # Lambda for serving the HTML page
+  ReceiveStreamFunction:
     Type: AWS::Serverless::Function
     Properties:
-      Handler: dist/handler.readLogs
-      Runtime: nodejs18.x
+      Handler: dist/handler.receiveStream
       CodeUri: .
       Environment:
         Variables:
@@ -35,23 +58,47 @@ Resources:
         - S3CrudPolicy:
             BucketName: !Ref LogBucket
       Events:
-        HelloWorld:
+        ReceiveStreamApi:
           Type: Api
           Properties:
-            Path: /logs
+            Path: /receiveStream
             Method: GET
+            RestApiId: !Ref MyApi
 
-  # S3 Bucket for Logs
+  # Shared API Gateway for all endpoints
+  MyApi:
+    Type: AWS::Serverless::Api
+    Properties:
+      Name: StreamingApi
+      StageName: Prod
+      Cors:
+        AllowMethods: "'GET'"
+        AllowHeaders: "'*'"
+        AllowOrigin: "'*'"
+
+  # S3 Bucket for logs
   LogBucket:
     Type: AWS::S3::Bucket
     Properties:
-      BucketName: !Sub "${AWS::StackName}-log-bucket" # Dynamically name the bucket based on stack name
+      BucketName: !Sub "${AWS::StackName}-log-bucket"
       AccessControl: Private
 
 Outputs:
   WebEndpoint:
-    Description: "API Gateway endpoint URL for Prod stage"
-    Value: !Sub "https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/"
+    Description: "Full URL to access the HTML viewer"
+    Value: !Sub "https://${MyApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/receiveStream"
+
+  SendStreamEndpoint:
+    Description: "Streaming endpoint for client (SSE)"
+    Value: !Sub "https://${MyApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/sendStream"
+
+  SendCookieEndpoint:
+    Description: "Endpoint to send a cookie"
+    Value: !Sub "https://${MyApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/sendCookie"
+
+  ReadCookieEndpoint:
+    Description: "Endpoint to read a cookie"
+    Value: !Sub "https://${MyApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/readCookie"
 
   LogBucketName:
     Description: "S3 bucket name for storing logs"

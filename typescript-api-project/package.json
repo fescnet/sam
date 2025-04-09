@@ -5,7 +5,8 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "sync": "npx tsc && sam sync --stack-name \"typescript-api-project\"",
-    "dev": "concurrently \"npx tsc --watch\" \"sam sync --stack-name \"typescript-api-project\" --watch\""
+    "dev": "concurrently \"npx tsc --watch\" \"sam sync --stack-name \"typescript-api-project\" --watch\"",
+    "run-local": "sam local start-api"
   },
   "author": "",
   "license": "ISC",
@@ -17,6 +18,8 @@
     "typescript": "^5.7.2"
   },
   "dependencies": {
-    "aws-sdk": "^2.1692.0"
+    "@aws-sdk/client-dynamodb": "^3.782.0",
+    "aws-sdk": "^2.1692.0",
+    "lambda-api": "^1.2.0"
   }
 }
